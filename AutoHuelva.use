@@ -1,1 +1,189 @@
-AutoHuelva
+model AutoHuelva
+
+-- ENUMERACIONES
+enum EstadoVehiculo {Operativo, Mantenimiento}
+enum ModoConduccion {Autonomo, Manual}
+enum TipoZona {Peatonal, Carga, Emergencia, Estandar}
+enum TipoPasajero {Estandar, Oro}
+enum EstadoSensor {Operativo, Fallo}
+
+-- CLASES
+class vAutonomo
+attributes
+    idVehiculo : String
+    velocidad : Real
+    kilometrajeTot : Real
+    estado : EstadoVehiculo
+    modo : ModoConduccion
+    nivelBateria : Real
+    numAsientos : Integer
+    cierreSeguridad : Boolean
+    maleteroDisponible : Boolean
+operations
+    arrancar()
+    embarcarPasajero(p : Pasajero)
+    activarModoAutonomo()
+    asignarRuta(r : Ruta)
+    irACargar(e : EstacionCarga)
+end
+
+class Sensor
+attributes
+    tipo : String
+    esCritico : Boolean
+    estado : EstadoSensor
+end
+
+class Ruta
+attributes
+    idRuta : String
+    esPrioritaria : Boolean
+    tiempoEspera : Integer
+end
+
+class Zona
+attributes
+    nombre : String
+    tipo : TipoZona
+    capacidadMax : Integer
+    velocidadMaxPermitida : Real
+end
+
+class Pasajero
+attributes
+    idPasajero : String
+    edad : Integer
+    tipo : TipoPasajero
+    tieneEquipajePesado : Boolean
+    tarifa : Real
+end
+
+-- 5 CLASES ADICIONALES (Mejora del Sistema)
+class CentroControl
+attributes
+    idCentro : String
+    estadoAlerta : Boolean
+end
+
+class EstacionCarga
+attributes
+    idEstacion : String
+    puntosLibres : Integer
+end
+
+class RegistroMantenimiento
+attributes
+    idRegistro : String
+    descripcion : String
+end
+
+class InterfazPasajero
+attributes
+    idioma : String
+    avisoSeguridad : Boolean
+end
+
+class HistoricoTrayectos
+attributes
+    distancia : Real
+    costeFinal : Real
+end
+
+-- ASOCIACIONES
+association VehiculoSensores between
+    vAutonomo[*] role vehiculo
+    Sensor[*] role sensores
+end
+
+association VehiculoPasajeros between
+    vAutonomo[0..1] role vehiculo
+    Pasajero[*] role pasajeros
+end
+
+association VehiculoZona between
+    vAutonomo[*] role vehiculos
+    Zona[1] role zona
+end
+
+association VehiculoRuta between
+    vAutonomo[1] role vehiculo
+    Ruta[0..1] role ruta
+end
+
+association ZonaCentro between
+    Zona[*] role zonas
+    CentroControl[1] role centro
+end
+
+-- RESTRICCIONES (INVARIANTES)
+constraints
+
+-- 1. Cierre de seguridad niños < 12 [cite: 18]
+context vAutonomo inv cierreInfantil:
+    self.pasajeros->exists(p | p.edad < 12) implies self.cierreSeguridad = true
+
+-- 2. Sensores críticos en modo autónomo [cite: 19]
+context vAutonomo inv sensoresCriticos:
+    self.modo = ModoConduccion::Autonomo implies 
+    self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
+
+-- 3. Mantenimiento > 5000 km [cite: 20]
+context vAutonomo inv kmMantenimiento:
+    self.kilometrajeTot > 5000 implies self.estado = EstadoVehiculo::Mantenimiento
+
+-- 4. No arrancar si hay más pasajeros que asientos [cite: 21]
+context vAutonomo inv capacidadAsientos:
+    self.velocidad > 0 implies self.pasajeros->size() <= self.numAsientos
+
+-- 5. Capacidad máxima de zona [cite: 22]
+context Zona inv capacidadVehiculos:
+    self.vehiculos->size() <= self.capacidadMax
+
+-- 6. Espera máxima 30 min [cite: 23]
+context Ruta inv tiempoEsperaMax:
+    self.tiempoEspera <= 30
+
+-- 7. Equipaje pesado requiere maletero [cite: 24]
+context vAutonomo inv maleteroEquipaje:
+    self.pasajeros->exists(p | p.tieneEquipajePesado) implies self.maleteroDisponible = true
+
+-- 8. Velocidad en zona peatones <= 20 [cite: 25]
+context vAutonomo inv limitePeatones:
+    self.zona.tipo = TipoZona::Peatonal implies self.velocidad <= 20
+
+-- 9. Batería < 10% [cite: 26]
+context vAutonomo inv bateriaBaja:
+    self.nivelBateria < 10 implies (self.pasajeros->isEmpty() and self.zona.tipo = TipoZona::Carga)
+
+-- 10. Tarifa Estandar >= Oro [cite: 27]
+context Pasajero inv tarifas:
+    (self.tipo = TipoPasajero::Estandar and Pasajero.allInstances()->exists(p|p.tipo = TipoPasajero::Oro)) 
+    implies self.tarifa >= Pasajero.allInstances()->select(p|p.tipo = TipoPasajero::Oro)->any(true).tarifa
+
+-- 11. Emergencia activa modo manual [cite: 28]
+context vAutonomo inv zonaEmergencia:
+    self.zona.tipo = TipoZona::Emergencia implies self.modo = ModoConduccion::Manual
+
+-- 12. Rutas prioritarias solo autónomos [cite: 29]
+context Ruta inv rutaPrioritaria:
+    self.esPrioritaria implies self.vehiculo.modo = ModoConduccion::Autonomo
+
+-- RESTRICCIONES ADICIONALES (Creativas/No triviales) 
+context vAutonomo inv mantenimientoSinPasajeros:
+    self.estado = EstadoVehiculo::Mantenimiento implies self.pasajeros->isEmpty()
+
+context CentroControl inv alertaEmergencia:
+    self.zonas->exists(z | z.tipo = TipoZona::Emergencia) implies self.estadoAlerta = true
+
+context vAutonomo inv cargaParado:
+    self.zona.tipo = TipoZona::Carga implies self.velocidad = 0
+
+-- CONTRATOS (PRE/POST) 
+context vAutonomo::embarcarPasajero(p : Pasajero)
+    pre: self.pasajeros->size() < self.numAsientos
+    pre: self.nivelBateria >= 10
+    post: self.pasajeros->includes(p)
+
+context vAutonomo::activarModoAutonomo()
+    pre: self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
+    post: self.modo = ModoConduccion::Autonomo
