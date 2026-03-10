@@ -20,11 +20,13 @@ attributes
     cierreSeguridad : Boolean
     maleteroDisponible : Boolean
 operations
-    arrancar()
+    arrancar() : Boolean
     embarcarPasajero(p : Pasajero)
-    activarModoAutonomo()
+    activarModoAutonomo() : Boolean
     asignarRuta(r : Ruta)
     irACargar(e : EstacionCarga)
+    establecerVelocidad(v : Real)
+    activarCierreSeguridad()
 end
 
 class Sensor
@@ -47,6 +49,9 @@ attributes
     tipo : TipoZona
     capacidadMax : Integer
     velocidadMaxPermitida : Real
+operations
+    verificarCapacidad() : Boolean
+    activarEmergencia()
 end
 
 class Pasajero
@@ -56,6 +61,10 @@ attributes
     tipo : TipoPasajero
     tieneEquipajePesado : Boolean
     tarifa : Real
+operations
+    calcularTarifa() : Real
+    registrarEquipaje(peso : Real)
+    solicitarTrayecto(r : Ruta)
 end
 
 -- 5 CLASES ADICIONALES (Mejora del Sistema)
@@ -63,30 +72,41 @@ class CentroControl
 attributes
     idCentro : String
     estadoAlerta : Boolean
+operations
+    emitirAlertaGlobal(mensaje : String)
+    autorizarMantenimiento(v : vAutonomo) : Boolean
 end
 
 class EstacionCarga
 attributes
     idEstacion : String
     puntosLibres : Integer
+operations
+    suministrarEnergia(v : vAutonomo) : Real
 end
 
 class RegistroMantenimiento
 attributes
     idRegistro : String
     descripcion : String
+operations
+    finalizarRevision() : Boolean
 end
 
 class InterfazPasajero
 attributes
     idioma : String
     avisoSeguridad : Boolean
+operations
+    mostrarAvisoSeguridad(mensaje : String)
 end
 
 class HistoricoTrayectos
 attributes
     distancia : Real
     costeFinal : Real
+operations
+    generarResumen(p : Pasajero) : String
 end
 
 -- ASOCIACIONES
@@ -184,6 +204,6 @@ context vAutonomo::embarcarPasajero(p : Pasajero)
     pre: self.nivelBateria >= 10
     post: self.pasajeros->includes(p)
 
-context vAutonomo::activarModoAutonomo()
+context vAutonomo::activarModoAutonomo() : Boolean
     pre: self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
-    post: self.modo = ModoConduccion::Autonomo
+    post: (result = true implies self.modo = ModoConduccion::Autonomo)
