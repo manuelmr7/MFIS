@@ -4,7 +4,7 @@ model AutoHuelva
 enum EstadoVehiculo {Operativo, Mantenimiento}
 enum ModoConduccion {Autonomo, Manual}
 enum TipoZona {Peatonal, Carga, Emergencia, Estandar}
-enum TipoPasajero {Estandar, Vip}
+enum TipoPasajero {Estandar, Oro}
 enum EstadoSensor {Operativo, Fallo}
 
 -- CLASES
