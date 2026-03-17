@@ -134,6 +134,31 @@ association ZonaCentro between
     Zona[*] role zonas
     CentroControl[1] role centro
 end
+--ASOCIACIONES 5 NUEVAS CLASES
+association VehiculoMantenimiento between
+    vAutonomo[1] role vehiculo
+    RegistroMantenimiento[*] role registros
+end
+
+association ZonaCarga between
+    Zona[1] role zonaUbicacion
+    EstacionCarga[*] role estaciones
+end
+
+association PasajeroInterfaz between
+    Pasajero[1] role usuario
+    InterfazPasajero[1] role terminal
+end
+
+association PasajeroHistorico between
+    Pasajero[1] role viajero
+    HistoricoTrayectos[*] role historial
+end
+
+association VehiculoEstacion between
+    vAutonomo[*] role vehiculosEnCarga
+    EstacionCarga[0..1] role estacionActual
+end
 
 -- RESTRICCIONES (INVARIANTES)
 constraints
