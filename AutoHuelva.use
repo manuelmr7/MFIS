@@ -19,6 +19,7 @@ attributes
     numAsientos : Integer
     cierreSeguridad : Boolean
     maleteroDisponible : Boolean
+    disponible : Boolean 
 operations
     arrancar() : Boolean
     embarcarPasajero(p : Pasajero)
@@ -27,6 +28,7 @@ operations
     irACargar(e : EstacionCarga)
     establecerVelocidad(v : Real)
     activarCierreSeguridad()
+    finalizarCarga() : Boolean 
 end
 
 class Sensor
