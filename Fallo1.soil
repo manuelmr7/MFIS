@@ -1,0 +1,28 @@
+!new Zona('z1')
+!set z1.tipo := TipoZona::Estandar
+!set z1.capacidadMax := 10
+
+!new vAutonomo('v1')
+!set v1.velocidad := 20
+!set v1.kilometrajeTot := 1000
+!set v1.estado := EstadoVehiculo::Operativo
+!set v1.modo := ModoConduccion::Autonomo
+!set v1.nivelBateria := 5  -- ERROR: Batería baja
+!set v1.numAsientos := 4
+!set v1.cierreSeguridad := false -- ERROR: No activado para niño
+
+!new Sensor('s1')
+!set s1.esCritico := true
+!set s1.estado := EstadoSensor::Fallo -- ERROR: Fallo en modo autónomo
+
+!insert (v1, z1) into VehiculoZona
+!insert (v1, s1) into VehiculoSensores
+
+!new Pasajero('nino')
+!set nino.edad := 8 -- ERROR: Menor de 12
+!set nino.tipo := TipoPasajero::Estandar
+!set nino.tarifa := 10.0
+
+!insert (v1, nino) into VehiculoPasajeros
+
+check

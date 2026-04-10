@@ -1,0 +1,51 @@
+-- 1. Crear infraestructura
+!new CentroControl('cc1')
+!set cc1.idCentro := 'CC-Huelva'
+!set cc1.estadoAlerta := false
+
+!new Zona('z1')
+!set z1.nombre := 'Centro'
+!set z1.tipo := TipoZona::Estandar
+!set z1.capacidadMax := 10
+!set z1.velocidadMaxPermitida := 50
+
+!insert (z1, cc1) into ZonaCentro
+
+-- 2. Crear vehículo y sensor
+!new vAutonomo('v1')
+!set v1.idVehiculo := 'V-001'
+!set v1.velocidad := 40
+!set v1.kilometrajeTot := 1500
+!set v1.estado := EstadoVehiculo::Operativo
+!set v1.modo := ModoConduccion::Autonomo
+!set v1.nivelBateria := 80
+!set v1.numAsientos := 4
+!set v1.cierreSeguridad := false
+!set v1.maleteroDisponible := true
+!set v1.disponible := true
+
+!new Sensor('s1')
+!set s1.tipo := 'LIDAR'
+!set s1.esCritico := true
+!set s1.estado := EstadoSensor::Operativo
+
+!insert (v1, z1) into VehiculoZona
+!insert (v1, s1) into VehiculoSensores
+
+-- 3. Crear pasajero y relaciones
+!new Pasajero('p1')
+!set p1.idPasajero := 'P-001'
+!set p1.edad := 25
+!set p1.tipo := TipoPasajero::Estandar
+!set p1.tieneEquipajePesado := false
+!set p1.tarifa := 15.0
+
+!new InterfazPasajero('ip1')
+!set ip1.idioma := 'ES'
+!set ip1.avisoSeguridad := false
+
+!insert (v1, p1) into VehiculoPasajeros
+!insert (p1, ip1) into PasajeroInterfaz
+
+-- Comprobar
+check

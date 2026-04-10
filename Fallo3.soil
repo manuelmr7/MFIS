@@ -1,0 +1,32 @@
+!new CentroControl('cc1')
+!set cc1.estadoAlerta := false -- ERROR: Debería ser true por la emergencia
+
+!new Zona('zEmergencia')
+!set zEmergencia.tipo := TipoZona::Emergencia
+!set zEmergencia.capacidadMax := 10
+!insert (zEmergencia, cc1) into ZonaCentro
+
+!new Zona('zCarga')
+!set zCarga.tipo := TipoZona::Carga
+!set zCarga.capacidadMax := 5
+!insert (zCarga, cc1) into ZonaCentro
+
+!new vAutonomo('vEnMantenimiento')
+!set vEnMantenimiento.kilometrajeTot := 6000 
+!set vEnMantenimiento.estado := EstadoVehiculo::Mantenimiento
+!set vEnMantenimiento.velocidad := 0
+!set vEnMantenimiento.numAsientos := 4
+!insert (vEnMantenimiento, zEmergencia) into VehiculoZona
+
+!new Pasajero('p1')
+!set p1.edad := 30
+!insert (vEnMantenimiento, p1) into VehiculoPasajeros -- ERROR: Pasajero en coche en mantenimiento
+
+!new vAutonomo('vEnCarga')
+!set vEnCarga.estado := EstadoVehiculo::Operativo
+!set vEnCarga.velocidad := 15 -- ERROR: Debería ser 0 en zona de carga
+!set vEnCarga.kilometrajeTot := 100
+!set vEnCarga.numAsientos := 4
+!insert (vEnCarga, zCarga) into VehiculoZona
+
+check

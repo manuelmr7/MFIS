@@ -1,0 +1,28 @@
+!new Zona('zPeatonal')
+!set zPeatonal.tipo := TipoZona::Peatonal
+!set zPeatonal.capacidadMax := 5
+
+!new vAutonomo('v1')
+!set v1.velocidad := 40 -- ERROR: Límite es 20 en peatonal
+!set v1.kilometrajeTot := 2000
+!set v1.estado := EstadoVehiculo::Operativo
+!set v1.modo := ModoConduccion::Manual
+!set v1.nivelBateria := 50
+!set v1.numAsientos := 4
+
+!insert (v1, zPeatonal) into VehiculoZona
+
+!new Ruta('r1')
+!set r1.esPrioritaria := true -- ERROR: Requiere modo autónomo
+!set r1.tiempoEspera := 10
+!insert (v1, r1) into VehiculoRuta
+
+!new Pasajero('pOro')
+!set pOro.tipo := TipoPasajero::Oro
+!set pOro.tarifa := 50.0
+
+!new Pasajero('pEstandar')
+!set pEstandar.tipo := TipoPasajero::Estandar
+!set pEstandar.tarifa := 10.0 -- ERROR: Tarifa Estandar < Oro
+
+check
