@@ -165,28 +165,28 @@ end
 -- RESTRICCIONES (INVARIANTES)
 constraints
 
--- 1. Cierre de seguridad niños
+-- 1. Cierre de seguridad niños < 12 
 context vAutonomo inv cierreInfantil:
     self.pasajeros->exists(p | p.edad < 12) implies self.cierreSeguridad = true
 
--- 2. Sensores críticos en modo autónomo 
+-- 2. Sensores críticos en modo autónomo
 context vAutonomo inv sensoresCriticos:
     self.modo = ModoConduccion::Autonomo implies 
     self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
 
--- 3. Mantenimiento
+-- 3. Mantenimiento > 5000 km
 context vAutonomo inv kmMantenimiento:
     self.kilometrajeTot > 5000 implies self.estado = EstadoVehiculo::Mantenimiento
 
--- 4. No arrancar si hay más pasajeros que asientos 
+-- 4. No arrancar si hay más pasajeros que asientos
 context vAutonomo inv capacidadAsientos:
     self.velocidad > 0 implies self.pasajeros->size() <= self.numAsientos
 
--- 5. Capacidad máxima de zona 
+-- 5. Capacidad máxima de zona
 context Zona inv capacidadVehiculos:
     self.vehiculos->size() <= self.capacidadMax
 
--- 6. Espera máxima
+-- 6. Espera máxima 30 min 
 context Ruta inv tiempoEsperaMax:
     self.tiempoEspera <= 30
 
@@ -194,15 +194,15 @@ context Ruta inv tiempoEsperaMax:
 context vAutonomo inv maleteroEquipaje:
     self.pasajeros->exists(p | p.tieneEquipajePesado) implies self.maleteroDisponible = true
 
--- 8. Velocidad en zona peatones
+-- 8. Velocidad en zona peatones <= 20 
 context vAutonomo inv limitePeatones:
     self.zona.tipo = TipoZona::Peatonal implies self.velocidad <= 20
 
--- 9. Batería
+-- 9. Batería < 10% 
 context vAutonomo inv bateriaBaja:
     self.nivelBateria < 10 implies (self.pasajeros->isEmpty() and self.zona.tipo = TipoZona::Carga)
 
--- 10. Tarifa Oro 
+-- 10. Tarifa Estandar >= Oro
 context Pasajero inv tarifas:
     (self.tipo = TipoPasajero::Estandar and Pasajero.allInstances()->exists(p|p.tipo = TipoPasajero::Oro)) 
     implies self.tarifa >= Pasajero.allInstances()->select(p|p.tipo = TipoPasajero::Oro)->any(true).tarifa
@@ -215,7 +215,7 @@ context vAutonomo inv zonaEmergencia:
 context Ruta inv rutaPrioritaria:
     self.esPrioritaria implies self.vehiculo.modo = ModoConduccion::Autonomo
 
--- RESTRICCIONES ADICIONALES 
+-- RESTRICCIONES ADICIONALES (Creativas/No triviales) 
 context vAutonomo inv mantenimientoSinPasajeros:
     self.estado = EstadoVehiculo::Mantenimiento implies self.pasajeros->isEmpty()
 
@@ -234,3 +234,19 @@ context vAutonomo::embarcarPasajero(p : Pasajero)
 context vAutonomo::activarModoAutonomo() : Boolean
     pre: self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
     post: (result = true implies self.modo = ModoConduccion::Autonomo)
+context vAutonomo :: arrancar () : Boolean
+    pre : self . pasajeros -> size () <= self . numAsientos
+    pre : self . estado = EstadoVehiculo :: Operativo
+    post : self . velocidad > 0
+context vAutonomo :: finalizarCarga () : Boolean
+    pre : self . zona . tipo = TipoZona :: Carga
+    pre : self . nivelBateria = 85
+    post : self . disponible = true
+    post : self . velocidad = 0
+context vAutonomo::asignarRuta(r : Ruta)
+    pre: self.disponible = true
+    pre: self.estado = EstadoVehiculo::Operativo
+    post: self.ruta = r
+context Zona::activarEmergencia()
+    pre: self.tipo <> TipoZona::Emergencia
+    post: self.tipo = TipoZona::Emergencia
