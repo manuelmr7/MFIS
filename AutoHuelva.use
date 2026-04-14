@@ -165,57 +165,57 @@ end
 -- RESTRICCIONES (INVARIANTES)
 constraints
 
--- 1. Cierre de seguridad niños < 12 [cite: 18]
+-- 1. Cierre de seguridad niños
 context vAutonomo inv cierreInfantil:
     self.pasajeros->exists(p | p.edad < 12) implies self.cierreSeguridad = true
 
--- 2. Sensores críticos en modo autónomo [cite: 19]
+-- 2. Sensores críticos en modo autónomo 
 context vAutonomo inv sensoresCriticos:
     self.modo = ModoConduccion::Autonomo implies 
     self.sensores->select(s | s.esCritico)->forAll(s | s.estado = EstadoSensor::Operativo)
 
--- 3. Mantenimiento > 5000 km [cite: 20]
+-- 3. Mantenimiento
 context vAutonomo inv kmMantenimiento:
     self.kilometrajeTot > 5000 implies self.estado = EstadoVehiculo::Mantenimiento
 
--- 4. No arrancar si hay más pasajeros que asientos [cite: 21]
+-- 4. No arrancar si hay más pasajeros que asientos 
 context vAutonomo inv capacidadAsientos:
     self.velocidad > 0 implies self.pasajeros->size() <= self.numAsientos
 
--- 5. Capacidad máxima de zona [cite: 22]
+-- 5. Capacidad máxima de zona 
 context Zona inv capacidadVehiculos:
     self.vehiculos->size() <= self.capacidadMax
 
--- 6. Espera máxima 30 min [cite: 23]
+-- 6. Espera máxima
 context Ruta inv tiempoEsperaMax:
     self.tiempoEspera <= 30
 
--- 7. Equipaje pesado requiere maletero [cite: 24]
+-- 7. Equipaje pesado requiere maletero 
 context vAutonomo inv maleteroEquipaje:
     self.pasajeros->exists(p | p.tieneEquipajePesado) implies self.maleteroDisponible = true
 
--- 8. Velocidad en zona peatones <= 20 [cite: 25]
+-- 8. Velocidad en zona peatones
 context vAutonomo inv limitePeatones:
     self.zona.tipo = TipoZona::Peatonal implies self.velocidad <= 20
 
--- 9. Batería < 10% [cite: 26]
+-- 9. Batería
 context vAutonomo inv bateriaBaja:
     self.nivelBateria < 10 implies (self.pasajeros->isEmpty() and self.zona.tipo = TipoZona::Carga)
 
--- 10. Tarifa Estandar >= Oro [cite: 27]
+-- 10. Tarifa Oro 
 context Pasajero inv tarifas:
     (self.tipo = TipoPasajero::Estandar and Pasajero.allInstances()->exists(p|p.tipo = TipoPasajero::Oro)) 
     implies self.tarifa >= Pasajero.allInstances()->select(p|p.tipo = TipoPasajero::Oro)->any(true).tarifa
 
--- 11. Emergencia activa modo manual [cite: 28]
+-- 11. Emergencia activa modo manual 
 context vAutonomo inv zonaEmergencia:
     self.zona.tipo = TipoZona::Emergencia implies self.modo = ModoConduccion::Manual
 
--- 12. Rutas prioritarias solo autónomos [cite: 29]
+-- 12. Rutas prioritarias solo autónomos 
 context Ruta inv rutaPrioritaria:
     self.esPrioritaria implies self.vehiculo.modo = ModoConduccion::Autonomo
 
--- RESTRICCIONES ADICIONALES (Creativas/No triviales) 
+-- RESTRICCIONES ADICIONALES 
 context vAutonomo inv mantenimientoSinPasajeros:
     self.estado = EstadoVehiculo::Mantenimiento implies self.pasajeros->isEmpty()
 
