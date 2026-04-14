@@ -69,7 +69,7 @@ operations
     solicitarTrayecto(r : Ruta)
 end
 
--- 5 CLASES ADICIONALES (Mejora del Sistema)
+-- 5 CLASES ADICIONALES (Mejora del Sistema Implementado)
 class CentroControl
 attributes
     idCentro : String
